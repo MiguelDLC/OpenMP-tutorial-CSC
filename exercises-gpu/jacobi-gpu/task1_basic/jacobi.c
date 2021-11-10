@@ -68,9 +68,9 @@ int main(int argc, char** argv)
     //TODO: denote all needed clauses
     #pragma omp target data map(tofrom:A[0:n*m]) map(alloc:Anew[0:m*n])
     while ( err > tol && iter < iter_max ) {
-	    err = 0.0;
+        err = 0.0;
         #pragma omp target teams distribute parallel for schedule(nonmonotonic:static,1) \
-        reduction(max:err) collapse(2)
+        reduction(max:err) collapse(2) map(tofrom:err)
         for( j = 1; j < n-1; j++) {
             for( i = 1; i < m-1; i++ ) {
                 Anew[j *m+ i] = 0.25 * ( A[j     *m+ (i+1)] + A[j     *m+ (i-1)]
