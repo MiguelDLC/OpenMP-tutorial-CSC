@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
     const double pi = 2.0 * asin(1.0);
     const double tol = 1.0e-5;
-    double err = 1.0;
+    double err = tol+1.0;
 
     double* restrict const A	= malloc( n*m * sizeof(double) );
     double* restrict const Anew	= malloc( n*m * sizeof(double) );
@@ -66,10 +66,11 @@ int main(int argc, char** argv)
 
     //TODO: use OpenMP to accelerate the most time consuming loop on a GPU
     //TODO: denote all needed clauses
+    #pragma omp target enter data map(tofrom:A[0:n*m]) map(alloc:Anew[0:m*n])
     while ( err > tol && iter < iter_max ) {
-
-	err = 0.0;
-
+	    err = 0.0;
+        #pragma omp target teams distribute parallel for schedule(nonmonotonic:static,1) \
+        reduction(max:err) collapse(2)
         for( j = 1; j < n-1; j++) {
             for( i = 1; i < m-1; i++ ) {
                 Anew[j *m+ i] = 0.25 * ( A[j     *m+ (i+1)] + A[j     *m+ (i-1)]
@@ -77,7 +78,8 @@ int main(int argc, char** argv)
                 err = fmax(err,fabs(Anew[j*m+i]-A[j*m+i]));
             }
         }
-
+        
+        #pragma omp target teams distribute parallel for schedule(nonmonotonic:static,1) collapse(2)
         for( j = 1; j < n-1; j++) {
             for( i = 1; i < m-1; i++ ) {
                 A[j *m+ i] = Anew[j *m+ i];
