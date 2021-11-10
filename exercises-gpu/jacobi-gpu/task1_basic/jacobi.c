@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 
     //TODO: use OpenMP to accelerate the most time consuming loop on a GPU
     //TODO: denote all needed clauses
-    #pragma omp target enter data map(tofrom:A[0:n*m]) map(alloc:Anew[0:m*n])
+    #pragma omp target data map(tofrom:A[0:n*m]) map(alloc:Anew[0:m*n])
     while ( err > tol && iter < iter_max ) {
 	    err = 0.0;
         #pragma omp target teams distribute parallel for schedule(nonmonotonic:static,1) \
